@@ -15,6 +15,9 @@ function toSeconds(frames) {
 
 console.log("markerInSeconds", toSeconds(MARKER_DISTANCE));
 
+if (window.AudioContext === undefined && window.webkitAudioContext) {
+  window.AudioContext = window.webkitAudioContext;
+}
 var cx = new AudioContext();
 
 var clickBuffer;
