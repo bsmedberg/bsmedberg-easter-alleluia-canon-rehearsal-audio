@@ -5,8 +5,8 @@ var OVERLAP = 5000;
 
 var GROUND_OFFSET = -8000;
 
-var GROUND_GAIN = 1.0;
-var C1_GAIN = 1.2;
+var GROUND_GAIN = 1.2;
+var C1_GAIN = 1.3;
 var C2_GAIN = 0.8;
 
 var SOLO_BACKGROUND = 0.2;
@@ -24,6 +24,67 @@ if (window.AudioContext === undefined && window.webkitAudioContext) {
   window.AudioContext = window.webkitAudioContext;
 }
 var cx = new AudioContext();
+
+function createGain() {
+  var gain = cx.createGain();
+  gain.connect(cx.destination);
+  return gain;
+}
+
+var clickGain = createGain();
+var groundGain = createGain();
+var c1Gains = [createGain(), createGain(), createGain()];
+var c2Gains = [createGain(), createGain()];
+
+function rampGainTo(gain, value) {
+  var t = cx.currentTime;
+  gain.gain.linearRampToValueAtTime(value, t + 0.2);
+}  
+
+function getSolo() {
+  var items = $("picker").solo;
+  for (var i = 0; i < items.length; ++i) {
+    if (items[i].checked) {
+      return items[i].value;
+    }
+  }
+  return "none";
+}
+
+function setupGains() {
+  console.log("setupGains");
+  var solo = getSolo();
+
+  function setupGain(gain, name, val) {
+    if ($(name).checked) {
+      if (solo != "none" && solo != name) {
+        val = val * SOLO_BACKGROUND;
+      }
+      rampGainTo(gain, val);
+    }
+    else {
+      rampGainTo(gain, 0);
+    }
+  }
+
+  setupGain(groundGain, "ground", GROUND_GAIN);
+  setupGain(c1Gains[0], "c1-1", C1_GAIN);
+  setupGain(c1Gains[1], "c1-2", C1_GAIN);
+  setupGain(c1Gains[2], "c1-3", C1_GAIN);
+  setupGain(c2Gains[0], "c2-1", C2_GAIN);
+  setupGain(c2Gains[1], "c2-2", C2_GAIN);
+
+  if ($("clicks").checked) {
+    var val = parseFloat($("clickGain").value);
+    if (!isNaN(val)) {
+      rampGainTo(clickGain, val);
+    }
+  }
+  else {
+    rampGainTo(clickGain, 0);
+  }
+}
+setupGains();
 
 var clickBuffer;
 var groundBuffer;
@@ -100,80 +161,42 @@ done();
 var gIterations = [];
 var gTimeout = null;
 
-function getSolo() {
-  var items = $("picker").solo;
-  for (var i = 0; i < items.length; ++i) {
-    if (items[i].checked) {
-      return items[i].value;
-    }
-  }
-  return undefined;
-}
-
-function createGain(baseval, name) {
-  var gain = cx.createGain();
-  var val = baseval;
-  var solo = getSolo();
-  if (solo !== undefined && solo != "none" && solo != name) {
-    val = val * SOLO_BACKGROUND;
-  }
-  gain.gain.value = val;
-  console.log("gain", name, val);
-  return gain;
-}
-
 function Iteration(iteration, start) {
-  var source, gain, i;
+  var source, i;
   this.buffers = [];
   this.iteration = iteration;
   this.start = start;
-  if ($("ground").checked) {
-    source = cx.createBufferSource();
-    source.buffer = groundBuffer;
-    gain = createGain(GROUND_GAIN, "ground");
-    source.connect(gain);
-    gain.connect(cx.destination);
-    source.start(start, toSeconds(START_FRAME - OVERLAP - GROUND_OFFSET), toSeconds(MARKER_DISTANCE));
-    this.buffers.push(source);
-  }
+  source = cx.createBufferSource();
+  source.buffer = groundBuffer;
+  source.connect(groundGain);
+  source.start(start, toSeconds(START_FRAME - OVERLAP - GROUND_OFFSET), toSeconds(MARKER_DISTANCE));
+  this.buffers.push(source);
 
   for (i = 0; i < 3; ++i) {
-    var name = "c1-" + (i + 1);
-    if ($(name).checked) {
-      source = cx.createBufferSource();
-      source.buffer = c1Buffer;
-      gain = createGain(C1_GAIN, name);
-      source.connect(gain);
-      gain.connect(cx.destination);
-      var marker = 1 + (iteration + i) % 3;
-      source.start(start, toSeconds(START_FRAME + MARKER_DISTANCE * marker - OVERLAP),
-                   toSeconds(MARKER_DISTANCE));
-      this.buffers.push(source);
-    }
+    source = cx.createBufferSource();
+    source.buffer = c1Buffer;
+    source.connect(c1Gains[i]);
+    var marker = 1 + (iteration + i) % 3;
+    source.start(start, toSeconds(START_FRAME + MARKER_DISTANCE * marker - OVERLAP),
+                 toSeconds(MARKER_DISTANCE));
+    this.buffers.push(source);
   }
 
   for (i = 0; i < 2; ++i) {
-    var name = "c2-" + (i + 1);
-    if ($(name).checked) {
-      source = cx.createBufferSource();
-      source.buffer = c2Buffer;
-      gain = createGain(C2_GAIN, name);
-      source.connect(gain);
-      gain.connect(cx.destination);
-      var marker = 4 + (iteration + i) % 2;
-      source.start(start, toSeconds(START_FRAME + MARKER_DISTANCE * marker - OVERLAP),
-                   toSeconds(MARKER_DISTANCE));
-      this.buffers.push(source);
-    }
-  }
-
-  if ($("clicks").checked) {
     source = cx.createBufferSource();
-    source.buffer = clickBuffer;
-    source.connect(cx.destination);
-    source.start(start, toSeconds(START_FRAME - OVERLAP), toSeconds(MARKER_DISTANCE));
+    source.buffer = c2Buffer;
+    source.connect(c2Gains[i]);
+    var marker = 4 + (iteration + i) % 2;
+    source.start(start, toSeconds(START_FRAME + MARKER_DISTANCE * marker - OVERLAP),
+                 toSeconds(MARKER_DISTANCE));
     this.buffers.push(source);
   }
+
+  source = cx.createBufferSource();
+  source.buffer = clickBuffer;
+  source.connect(clickGain);
+  source.start(start, toSeconds(START_FRAME - OVERLAP), toSeconds(MARKER_DISTANCE));
+  this.buffers.push(source);
 }
 Iteration.prototype.disconnect = function() {
   while (this.buffers.length) {
@@ -216,3 +239,5 @@ function stop() {
     gIterations.shift().disconnect();
   }
 }
+
+document.addEventListener("change", setupGains, false);
