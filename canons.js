@@ -23,6 +23,9 @@ console.log("markerInSeconds", toSeconds(MARKER_DISTANCE));
 if (window.AudioContext === undefined && window.webkitAudioContext) {
   window.AudioContext = window.webkitAudioContext;
 }
+if (window.AudioContext) {
+  $("compatnotice").style.display = "none";
+}
 var cx = new AudioContext();
 
 function createGain() {
