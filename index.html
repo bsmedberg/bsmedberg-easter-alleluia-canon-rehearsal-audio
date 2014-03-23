@@ -1,0 +1,48 @@
+<head>
+  <title>Easter Alleluia Rehearsal Track</title>
+
+<body>
+  <h1>Easter Alleluia Rehearsal Track</h1>
+
+  <form id="picker">
+  <table>
+    <thead>
+    <tr>
+      <th>Play
+      <th>Solo
+      <th>Part
+    <tbody>
+    <tr>
+      <td><input type="checkbox" id="ground" checked>
+      <td><input type="radio" name="solo" value="ground">
+      <td><label for="ground">Ground</label>
+    <tr>
+      <td><input type="checkbox" id="c1-1">
+      <td><input type="radio" name="solo" value="c1-1">
+      <td><label for="c1-1">Canon 1 part 1</label>
+    <tr>
+      <td><input type="checkbox" id="c1-2">
+      <td><input type="radio" name="solo" value="c1-2">
+      <td><label for="c1-2">Canon 1 part 2</label>
+    <tr>
+      <td><input type="checkbox" id="c1-3">
+      <td><input type="radio" name="solo" value="c1-3">
+      <td><label for="c1-3">Canon 1 part 3</label>
+    <tr>
+      <td><input type="checkbox" id="c2-1">
+      <td><input type="radio" name="solo" value="c2-1">
+      <td><label for="ground">Canon 2 part 1</label>
+    <tr>
+      <td><input type="checkbox" id="c2-2">
+      <td><input type="radio" name="solo" value="c2-2">
+      <td><label for="ground">Canon 2 part 2</label>
+    <tr>
+      <td><input type="checkbox" id="clicks">
+      <td><td><label for="clicks">Clicks</label>
+  </table>
+  <p><input type="radio" name="solo" value="none" checked>No solo
+  </form>
+  <p><input id="gobutton" type="button" value="Go" disabled onclick="go()">
+    <input id="stopbutton" type="button" value="Stop" onclick="stop()">
+
+  <script src="canons.js"></script>
