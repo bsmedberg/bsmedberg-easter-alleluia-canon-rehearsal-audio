@@ -9,6 +9,8 @@ var GROUND_GAIN = 1.0;
 var C1_GAIN = 1.2;
 var C2_GAIN = 0.8;
 
+var SOLO_BACKGROUND = 0.2;
+
 function toSeconds(frames) {
   return frames / SAMPLE_RATE;
 }
@@ -113,7 +115,7 @@ function createGain(baseval, name) {
   var val = baseval;
   var solo = getSolo();
   if (solo !== undefined && solo != "none" && solo != name) {
-    val = val * 0.1;
+    val = val * SOLO_BACKGROUND;
   }
   gain.gain.value = val;
   console.log("gain", name, val);
