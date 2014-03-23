@@ -100,6 +100,21 @@ function $(id) {
 }
 
 function getAudio(url, cb) {
+  var loadItem = document.createElement("li");
+  var progress = document.createElement("span");
+  progress.setAttribute("class", "progress");
+  loadItem.appendChild(progress);
+  var span = document.createElement("span");
+  span.textContent = url;
+  loadItem.appendChild(span);
+
+  function setProgress(pct) {
+    pct = Math.floor(pct);
+    progress.style.borderLeftWidth = pct + "px";
+    progress.style.width = (100 - pct) + "px";
+  }
+
+  $("load-list").appendChild(loadItem);
   var xhr = new XMLHttpRequest();
   xhr.open("GET", url);
   xhr.responseType = "arraybuffer";
@@ -114,11 +129,15 @@ function getAudio(url, cb) {
     loadErr.push("Failed to load " + url);
     done();
   }, false);
+  xhr.addEventListener("progress", function(e) {
+    setProgress(e.loaded / e.total * 100);
+  }, false);
   xhr.send();
 }
 
 function done() {
   if (clickBuffer && groundBuffer && c1Buffer && c2Buffer) {
+    $("load-list").style.display = "none";
     $("gobutton").disabled = false;
     $("status").textContent = "Loaded";
     return;
