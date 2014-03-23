@@ -13,6 +13,9 @@ function toSeconds(frames) {
   return frames / SAMPLE_RATE;
 }
 
+if (window.console === undefined) {
+  window.console = { log: function() { } };
+}
 console.log("markerInSeconds", toSeconds(MARKER_DISTANCE));
 
 if (window.AudioContext === undefined && window.webkitAudioContext) {
@@ -24,6 +27,7 @@ var clickBuffer;
 var groundBuffer;
 var c1Buffer;
 var c2Buffer;
+var loadErr = [];
 
 function $(id) {
   return document.getElementById(id);
@@ -35,15 +39,42 @@ function getAudio(url, cb) {
   xhr.responseType = "arraybuffer";
   xhr.onload = function(event) {
     console.log("onload", url, xhr.response);
-    cx.decodeAudioData(xhr.response, cb);
+    cx.decodeAudioData(xhr.response, cb, function() {
+      loadErr.push("Failed to decode " + url);
+      done();
+    });
   };
+  xhr.addEventListener("error", function(e) {
+    loadErr.push("Failed to load " + url);
+    done();
+  }, false);
   xhr.send();
 }
 
 function done() {
   if (clickBuffer && groundBuffer && c1Buffer && c2Buffer) {
     $("gobutton").disabled = false;
+    $("status").textContent = "Loaded";
+    return;
   }
+  if (loadErr.length) {
+    $("status").textContent = "Errors: " + loadErr.join(",");
+    return;
+  }
+  var l = [];
+  if (!clickBuffer) {
+    l.push("Click Track");
+  }
+  if (!groundBuffer) {
+    l.push("Ground Track");
+  }
+  if (!c1Buffer) {
+    l.push("Canon 1 Track");
+  }
+  if (!c2Buffer) {
+    l.push("Canon 2 Track");
+  }
+  $("status").textContent = "Loading " + l.join(", ") + "...";
 }
 
 getAudio("Click Track.wav", function(buffer) {
@@ -62,6 +93,7 @@ getAudio("Mom 2.wav", function(buffer) {
   c2Buffer = buffer;
   done();
 });
+done();
 
 var gIterations = [];
 var gTimeout = null;
