@@ -240,4 +240,11 @@ function stop() {
   }
 }
 
+function openInNewWindow(link) {
+  var features = "width=" + (screen.availWidth - 100) + ",height=" + (screen.availHeight - 100) + ",resizable,scrollbars=yes,status=1,centerscreen=1,top=100,left=50";
+  console.log("music-window", features);
+  window.open(link.href, "_blank", features);
+  return false;
+}
+
 document.addEventListener("change", setupGains, false);
