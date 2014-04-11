@@ -42,7 +42,7 @@ var c2Gains = [createGain(), createGain()];
 function rampGainTo(gain, value) {
   var t = cx.currentTime;
   gain.gain.linearRampToValueAtTime(value, t + 0.2);
-}  
+}
 
 function getSolo() {
   var items = $("picker").solo;
@@ -162,19 +162,19 @@ function done() {
   $("status").textContent = "Loading " + l.join(", ") + "...";
 }
 
-getAudio("Click Track.wav", function(buffer) {
+getAudio("click-track.mp3", function(buffer) {
   clickBuffer = buffer;
   done();
 });
-getAudio("Claire Ground 1.wav", function(buffer) {
+getAudio("claire-ground.mp3", function(buffer) {
   groundBuffer = buffer;
   done();
 });
-getAudio("Ellie 2.wav", function(buffer) {
+getAudio("ellie-2.mp3", function(buffer) {
   c1Buffer = buffer;
   done();
 });
-getAudio("Mom 2.wav", function(buffer) {
+getAudio("mom-2.mp3", function(buffer) {
   c2Buffer = buffer;
   done();
 });
